@@ -410,11 +410,15 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
         if (vms.isNotEmpty) {
             final vm = vms[0];
             if (vm['id'] != null) {
-              studentId = vm['id'].toString();
-              
+              studentId = vm['id'].toString(); // 内部 ID，用于成绩查询等 API
+
               // Sync to cache for other uses
               final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('student_id', studentId);
+              await prefs.setString('user_internal_id', studentId);
+              // code 才是真正的学号
+              if (vm['code'] != null) {
+                await prefs.setString('student_id', vm['code'].toString());
+              }
               if (vm['name'] != null) {
                 await prefs.setString('user_nickname', vm['name'].toString());
               }
