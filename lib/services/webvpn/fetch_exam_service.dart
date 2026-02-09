@@ -203,53 +203,75 @@ class FetchExamService {
     return -1;
   }
 
-  /// 通过 XHR 获取页面内容（复用现有的 XHR 注入逻辑）
+  /// 通过异步 XHR 获取页面内容（兼容 iOS WKWebView，不使用同步 XHR）
   static Future<String?> _fetchWithXhr(WebViewController controller, String url) async {
     try {
       final safeUrl = url.replaceAll("'", "\\'");
-      final js = """
+      final key = '_fr_${DateTime.now().millisecondsSinceEpoch}';
+
+      // 启动异步 XHR（iOS WKWebView 不支持同步 XHR）
+      await controller.runJavaScript("""
+        window['$key'] = null;
+        window['${key}_done'] = false;
         (function() {
           try {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', '$safeUrl', false);
-            // xhr.withCredentials = true; // WebVPN 通常已有 Cookie，显式设置可能不是必须的，但有时候保险
+            xhr.open('GET', '$safeUrl', true);
+            xhr.withCredentials = true;
+            xhr.onload = function() {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                window['$key'] = xhr.responseText;
+              } else {
+                window['$key'] = 'JS_ERROR: HTTP ' + xhr.status + ' ' + xhr.statusText;
+              }
+              window['${key}_done'] = true;
+            };
+            xhr.onerror = function() {
+              window['$key'] = 'JS_ERROR: Network error';
+              window['${key}_done'] = true;
+            };
             xhr.send();
-            if (xhr.status >= 200 && xhr.status < 300) {
-               return xhr.responseText;
-            } else {
-               return 'JS_ERROR: HTTP ' + xhr.status + ' ' + xhr.statusText;
-            }
           } catch(e) {
-            return 'JS_ERROR: ' + e.toString();
+            window['$key'] = 'JS_ERROR: ' + e.toString();
+            window['${key}_done'] = true;
           }
         })();
-      """;
+      """);
 
-      final result = await controller.runJavaScriptReturningResult(js);
-      String response = "";
-      if (result is String) {
-        // Remove quotes if they indicate a JSON string wrapping
-        if (result.startsWith('"') && result.endsWith('"')) {
-             try {
-               // runJavaScriptReturningResult 返回的是 JSON 字符串化的结果，
-               // 对于 HTML 内容，它会包含大量的转义字符。
-               // 使用 jsonDecode 可以正确反转义。
-               response = jsonDecode(result);
-             } catch(_) {
-               response = result;
-             }
-        } else {
-             response = result;
+      // 轮询等待结果（最多 10 秒）
+      for (int i = 0; i < 100; i++) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        final done = await controller.runJavaScriptReturningResult("window['${key}_done']");
+        if (done.toString() == 'true') {
+          final result = await controller.runJavaScriptReturningResult("window['$key']");
+          // 清理全局变量
+          await controller.runJavaScript("delete window['$key']; delete window['${key}_done'];");
+
+          String response = "";
+          if (result is String) {
+            if (result.startsWith('"') && result.endsWith('"')) {
+              try {
+                response = jsonDecode(result);
+              } catch (_) {
+                response = result;
+              }
+            } else {
+              response = result;
+            }
+          } else {
+            response = result.toString();
+          }
+
+          if (response.startsWith("JS_ERROR:")) {
+            debugPrint("WebView XHR Failed for $url: $response");
+            return null;
+          }
+          return response;
         }
-      } else {
-        response = result.toString();
       }
 
-      if (response.startsWith("JS_ERROR:")) {
-        debugPrint("WebView XHR Failed for $url: $response");
-        return null;
-      }
-      return response;
+      debugPrint("WebView XHR Timeout for $url");
+      return null;
     } catch (e) {
       debugPrint("WebView Eval Failed: $e");
       return null;
