@@ -446,6 +446,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       _showSnack("成功导入 ${scores.length} 条成绩记录！");
       _isDataChanged = true;
       _recordSyncTime();
+      if (!mounted) return;
+      Navigator.pop(context, true);
     } catch (e) {
       debugPrint("Extract score error: $e");
       _showSnack("提取失败: $e");
@@ -473,6 +475,8 @@ class _LoginWebviewScreenState extends State<LoginWebviewScreen> {
       
       _isDataChanged = true;
       _recordSyncTime();
+      if (!mounted) return;
+      Navigator.pop(context, true);
     } catch (e) {
       debugPrint("Extract Exam Error: $e");
       _showSnack("提取失败: $e");
