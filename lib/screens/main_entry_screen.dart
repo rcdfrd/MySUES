@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
 import 'schedule_screen.dart';
@@ -17,7 +18,7 @@ class MainEntryScreen extends StatefulWidget {
 
 class _MainEntryScreenState extends State<MainEntryScreen> {
   int _currentIndex = 0;
-  
+
   // 页面列表
   final List<Widget> _pages = [
     const ScheduleScreen(),
@@ -25,6 +26,68 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
     const ExamInfoScreen(),
     const ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final disclaimerShown = prefs.getBool('disclaimer_shown') ?? false;
+    if (!disclaimerShown && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showDisclaimerDialog();
+      });
+    }
+  }
+
+  void _showDisclaimerDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('免责声明'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '您当前使用的版本为 1.0.0-alpha+1，并非最终版本。',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Text(
+                '本应用目前处于早期测试阶段，部分功能可能存在不稳定的情况。'
+                '使用过程中可能会遇到数据异常、功能缺失或其他未知问题。',
+              ),
+              SizedBox(height: 8),
+              Text(
+                '本应用仅供学习交流使用，与上海工程技术大学官方无关。'
+                '开发者不对因使用本应用而产生的任何直接或间接损失承担责任。',
+              ),
+              SizedBox(height: 8),
+              Text('如遇到问题，欢迎联系作者进行反馈。感谢您的理解与支持！'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('disclaimer_shown', true);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('我已知晓'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
