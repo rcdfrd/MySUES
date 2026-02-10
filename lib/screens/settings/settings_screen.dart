@@ -38,12 +38,6 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.update),
-            title: const Text('检查更新'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _checkUpdate(context),
-          ),
           const Divider(),
           _buildGroupTitle(context, '数据与隐私'),
           ListTile(
@@ -69,30 +63,6 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _checkUpdate(BuildContext context) {
-    // Mock check update
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('正在检查更新...')),
-    );
-    Future.delayed(const Duration(seconds: 2), () {
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('已经是最新版本'),
-            content: const Text('当前版本: 1.0.0 (Build 1)'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('确定'),
-              ),
-            ],
-          ),
-        );
-      }
-    });
   }
 
   void _showClearDataDialog(BuildContext context) {

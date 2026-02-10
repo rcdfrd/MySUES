@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChangelogScreen extends StatelessWidget {
   const ChangelogScreen({super.key});
@@ -14,7 +15,7 @@ class ChangelogScreen extends StatelessWidget {
         children: [
           _buildVersionCard(
             context,
-            version: '1.0.0',
+            version: '0.1.0-beta.1',
             date: '2026-02-06',
             changes: [
               '首次发布',
@@ -24,6 +25,33 @@ class ChangelogScreen extends StatelessWidget {
               '新增字体切换功能',
             ],
             isLatest: true,
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  '本应用不支持自动检查更新',
+                  style: TextStyle(
+                    color: Theme.of(context).hintColor,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: () => launchUrl(Uri.parse('https://syntrion.dev/mysues')),
+                  child: Text(
+                    '前往 syntrion.dev/mysues 下载最新版本',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
