@@ -169,7 +169,7 @@ class _ExamInfoScreenState extends State<ExamInfoScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: const Text(
-                    '考试信息仅供参考，请以教务处系统提示为准',
+                    '考试信息非即时获取，仅供参考，请以教务处系统提示为准！',
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
                 ),

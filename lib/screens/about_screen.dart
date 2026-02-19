@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
-import 'package:mysues/screens/about/feature_intro_screen.dart';
 import 'package:mysues/screens/about/changelog_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
 import 'package:mysues/screens/about/open_source_license_screen.dart';
@@ -36,7 +35,7 @@ class AboutScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Version 1.0.0',
+                  'Version 0.1.1-beta.1',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ],
@@ -57,11 +56,9 @@ class AboutScreen extends StatelessWidget {
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(context, '隐私政策', const PrivacyPolicyScreen()),
                 const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '功能介绍', const FeatureIntroScreen()),
-                const Divider(height: 1, indent: 16),
                 _buildOptionItem(context, '版本更新', const ChangelogScreen()),
                 const Divider(height: 1, indent: 16),
-                _buildOptionItem(context, '开源致谢', const OpenSourceLicenseScreen()),
+                _buildOptionItem(context, '开源信息', const OpenSourceLicenseScreen()),
                 const Divider(height: 1, indent: 16),
                 _buildOptionItem(context, '作者', const SponsorScreen()),
               ],
