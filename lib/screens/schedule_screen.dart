@@ -370,85 +370,135 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void _showScheduleManager(BuildContext context) async {
     final tables = await ScheduleDataService.loadScheduleTables();
     if (!context.mounted) return;
-    
+
+    final isLiquidGlass = ThemeService().liquidGlassEnabled;
+
     showModalBottomSheet(
-      context: context, 
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isLiquidGlass ? Colors.transparent : null,
       builder: (context) {
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                   const Text("切换课表", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                   IconButton(
-                     icon: const Icon(Icons.add),
-                     onPressed: () async {
-                       Navigator.pop(context);
-                       final newTable = await Navigator.push(
-                         context,
-                         MaterialPageRoute(builder: (c) => const ScheduleSettingsScreen()),
-                       );
-                       if (newTable != null && newTable is ScheduleTable) {
-                         await ScheduleDataService.addScheduleTable(newTable);
-                         await ScheduleDataService.setCurrentTableId(newTable.id);
-                         _initData();
-                       }
-                     },
-                   )
-                ],
+        final theme = Theme.of(context);
+
+        Widget sheet = Container(
+          decoration: isLiquidGlass ? null : BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: Column(
+            children: [
+              // Handle bar
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(2.5)),
+                  ),
+                ),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-              child: Text("长按删除课表", style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: tables.length,
-                itemBuilder: (context, index) {
-                  final table = tables[index];
-                  final isCurrent = _currentTable?.id == table.id;
-                  return ListTile(
-                    title: Text(table.tableName),
-                    subtitle: Text("开学: ${table.startDate}"),
-                    trailing: isCurrent ? const Icon(Icons.check, color: Colors.blue) : null,
-                    selected: isCurrent,
-                    onTap: () async {
-                      await ScheduleDataService.setCurrentTableId(table.id);
-                      if (context.mounted) Navigator.pop(context);
-                      _initData();
-                    },
-                    onLongPress: () {
-                      showDialog(
-                        context: context, 
-                        builder: (context) => AlertDialog(
-                          title: const Text('删除课表'),
-                          content: Text('确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。'),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(context); // Close dialog
-                                await ScheduleDataService.deleteScheduleTable(table.id);
-                                if (context.mounted) {
-                                   Navigator.pop(context); // Close bottom sheet to avoid stale data
-                                   _initData(); // Refresh, _initData handles fallback if current is deleted
-                                }
-                              }, 
-                              child: const Text('删除', style: TextStyle(color: Colors.red))
-                            ),
-                          ],
-                        )
-                      );
-                    },
-                  );
-                },
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                     const Text("切换课表", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                     IconButton(
+                       icon: const Icon(Icons.add),
+                       onPressed: () async {
+                         Navigator.pop(context);
+                         final newTable = await Navigator.push(
+                           context,
+                           MaterialPageRoute(builder: (c) => const ScheduleSettingsScreen()),
+                         );
+                         if (newTable != null && newTable is ScheduleTable) {
+                           await ScheduleDataService.addScheduleTable(newTable);
+                           await ScheduleDataService.setCurrentTableId(newTable.id);
+                           _initData();
+                         }
+                       },
+                     )
+                  ],
+                ),
               ),
-            ),
-          ],
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: Text("长按删除课表", style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tables.length,
+                  itemBuilder: (context, index) {
+                    final table = tables[index];
+                    final isCurrent = _currentTable?.id == table.id;
+                    return ListTile(
+                      title: Text(table.tableName),
+                      subtitle: Text("开学: ${table.startDate}"),
+                      trailing: isCurrent ? const Icon(Icons.check, color: Colors.blue) : null,
+                      selected: isCurrent,
+                      onTap: () async {
+                        await ScheduleDataService.setCurrentTableId(table.id);
+                        if (context.mounted) Navigator.pop(context);
+                        _initData();
+                      },
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('删除课表'),
+                            content: Text('确认要删除课表 "${table.tableName}" 吗？\n删除后该课表下的所有课程也会被清空。'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context); // Close dialog
+                                  await ScheduleDataService.deleteScheduleTable(table.id);
+                                  if (context.mounted) {
+                                     Navigator.pop(context); // Close bottom sheet to avoid stale data
+                                     _initData(); // Refresh, _initData handles fallback if current is deleted
+                                  }
+                                },
+                                child: const Text('删除', style: TextStyle(color: Colors.red))
+                              ),
+                            ],
+                          )
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
+
+        if (isLiquidGlass) {
+          final brightness = MediaQuery.platformBrightnessOf(context);
+          final isDark = brightness == Brightness.dark;
+          sheet = LiquidGlass.withOwnLayer(
+            settings: LiquidGlassSettings.figma(
+              depth: 50,
+              refraction: 100,
+              dispersion: 4,
+              frost: 2,
+              lightAngle: math.pi / 4,
+              glassColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+              lightIntensity: isDark ? 70 : 50,
+            ),
+            shape: const LiquidRoundedSuperellipse(borderRadius: 20),
+            child: Material(
+              color: Colors.transparent,
+              child: sheet,
+            ),
+          );
+        }
+
+        return sheet;
       }
     );
   }
