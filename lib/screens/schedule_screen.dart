@@ -166,9 +166,37 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
   
   double _calculateHeight(Course course) {
-    // 始终使用节次数 * 格子高度，保持色块大小一致不压扁
-    // 位置偏移由 _calculateTop 处理
-    return course.step * _cellHeight;
+    if (_timeDetails.isEmpty) {
+      return course.step * _cellHeight;
+    }
+
+    int? startMinutes;
+    int? endMinutes;
+
+    // 优先使用课程自带的起止时间
+    if (course.startTime != null && course.startTime!.isNotEmpty &&
+        course.endTime != null && course.endTime!.isNotEmpty) {
+      startMinutes = _parseTime(course.startTime!);
+      endMinutes = _parseTime(course.endTime!);
+    }
+
+    // 若没有自定义时间，从时间表查找对应节次的标准起止时间
+    if (startMinutes == null || endMinutes == null ||
+        startMinutes == 0 || endMinutes == 0) {
+      try {
+        final startDetail = _timeDetails.firstWhere((t) => t.node == course.startNode);
+        final endNode = course.startNode + course.step - 1;
+        final endDetail = _timeDetails.firstWhere((t) => t.node == endNode);
+        startMinutes = _parseTime(startDetail.startTime);
+        endMinutes = _parseTime(endDetail.endTime);
+      } catch (_) {
+        return course.step * _cellHeight;
+      }
+    }
+
+    final h = _timeMinutesToPosition(endMinutes) - _timeMinutesToPosition(startMinutes);
+    // 保证最小高度，避免极短课程不可见
+    return h >= _cellHeight * 0.5 ? h : course.step * _cellHeight;
   }
 
   void _showCourseDetail(BuildContext context, Course course) {
