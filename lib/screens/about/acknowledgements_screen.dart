@@ -17,34 +17,43 @@ class AcknowledgementsScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
-            const Icon(Icons.favorite, size: 48, color: Colors.redAccent),
-            const SizedBox(height: 16),
             const Text(
-              '感谢以下用户对本项目的赞助',
-              style: TextStyle(fontSize: 16),
+              '赞助者',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
-              '排名不分先后',
+              '感谢以下用户对本项目的赞助（排名不分先后）',
               style: TextStyle(fontSize: 13, color: Colors.grey[500]),
             ),
-            const SizedBox(height: 24),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 10,
-              runSpacing: 10,
-              children: _sponsors.map((name) {
-                return Chip(
-                  label: Text(name),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                );
-              }).toList(),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 0,
+              color: Theme.of(context).cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: List.generate(_sponsors.length * 2 - 1, (index) {
+                    if (index.isOdd) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        child: Divider(height: 1),
+                      );
+                    }
+                    final sponsor = _sponsors[index ~/ 2];
+                    return Center(
+                      child: Text(sponsor, style: const TextStyle(fontSize: 15)),
+                    );
+                  }),
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
