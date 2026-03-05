@@ -500,9 +500,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                        icon: const Icon(Icons.add),
                        onPressed: () async {
                          Navigator.pop(context);
+                         final existingNames = tables.map((t) => t.tableName).toList();
                          final newTable = await Navigator.push(
                            context,
-                           MaterialPageRoute(builder: (c) => const ScheduleSettingsScreen()),
+                           MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
                          );
                          if (newTable != null && newTable is ScheduleTable) {
                            await ScheduleDataService.addScheduleTable(newTable);
@@ -610,9 +611,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () async {
+                    final allTables = await ScheduleDataService.loadScheduleTables();
+                    final existingNames = allTables.map((t) => t.tableName).toList();
+                    if (!context.mounted) return;
                     final newTable = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (c) => const ScheduleSettingsScreen()),
+                      MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(existingNames: existingNames)),
                     );
                     if (newTable != null && newTable is ScheduleTable) {
                       await ScheduleDataService.addScheduleTable(newTable);
@@ -724,9 +728,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     leadingIcon: const Icon(Icons.settings),
                     onPressed: () async {
                       if (_currentTable != null) {
+                        final allTables = await ScheduleDataService.loadScheduleTables();
+                        final existingNames = allTables
+                            .where((t) => t.id != _currentTable!.id)
+                            .map((t) => t.tableName)
+                            .toList();
+                        if (!context.mounted) return;
                         final newTable = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!)),
+                          MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!, existingNames: existingNames)),
                         );
                         if (newTable != null && newTable is ScheduleTable) {
                           await ScheduleDataService.updateScheduleTable(newTable);
@@ -754,18 +764,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           final weekNum = index + 1;
           return _buildWeekSchedule(weekNum);
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: '回到本周',
-        onPressed: () {
-           if (_currentTable != null) {
-              int todayWeek = _calculateCurrentWeek(_currentTable!.startDateObj);
-              // clamp to valid range
-              final targetPage = (todayWeek - 1).clamp(0, _currentTable!.maxWeek - 1);
-              _pageController.jumpToPage(targetPage);
-           }
-        },
-        child: const Icon(Icons.today),
       ),
     );
   }
@@ -876,9 +874,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             onTap: () async {
                               Navigator.pop(dialogContext);
                               if (_currentTable != null) {
+                                final allTables = await ScheduleDataService.loadScheduleTables();
+                                final existingNames = allTables
+                                    .where((t) => t.id != _currentTable!.id)
+                                    .map((t) => t.tableName)
+                                    .toList();
+                                if (!context.mounted) return;
                                 final newTable = await Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!)),
+                                  MaterialPageRoute(builder: (c) => ScheduleSettingsScreen(table: _currentTable!, existingNames: existingNames)),
                                 );
                                 if (newTable != null && newTable is ScheduleTable) {
                                   await ScheduleDataService.updateScheduleTable(newTable);

@@ -3,8 +3,9 @@ import '../models/schedule_table.dart';
 
 class ScheduleSettingsScreen extends StatefulWidget {
   final ScheduleTable? table; // Null for new table
+  final List<String> existingNames;
 
-  const ScheduleSettingsScreen({super.key, this.table});
+  const ScheduleSettingsScreen({super.key, this.table, this.existingNames = const []});
 
   @override
   State<ScheduleSettingsScreen> createState() => _ScheduleSettingsScreenState();
@@ -136,11 +137,37 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
   }
 
   void _save() {
-    final maxWeek = int.tryParse(_maxWeekController.text) ?? 30;
-    final nodes = int.tryParse(_nodesController.text) ?? 15;
+    final name = _nameController.text.trim();
+    final maxWeek = int.tryParse(_maxWeekController.text) ?? 0;
+    final nodes = int.tryParse(_nodesController.text) ?? 0;
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('课表名称不能为空')),
+      );
+      return;
+    }
+    if (maxWeek < 15) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('学期周数不能少于 15 周')),
+      );
+      return;
+    }
+    if (nodes < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('每天节数不能少于 10 节')),
+      );
+      return;
+    }
+    if (widget.existingNames.contains(name)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('课表名称已存在，请使用其他名称')),
+      );
+      return;
+    }
 
     if (widget.table != null) {
-      widget.table!.tableName = _nameController.text;
+      widget.table!.tableName = name;
       widget.table!.startDate = _startDate;
       widget.table!.maxWeek = maxWeek;
       widget.table!.nodes = nodes;
@@ -151,7 +178,7 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
       Navigator.pop(context, widget.table);
     } else {
       final newTable = ScheduleTable(
-        tableName: _nameController.text,
+        tableName: name,
         startDate: _startDate,
         maxWeek: maxWeek,
         nodes: nodes,
