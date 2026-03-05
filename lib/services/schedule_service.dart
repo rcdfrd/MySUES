@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
+import 'widget_service.dart';
 
 class ScheduleDataService {
   static const String _tablesKey = 'schedule_tables';
@@ -29,6 +30,7 @@ class ScheduleDataService {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = jsonEncode(tables.map((e) => e.toJson()).toList());
     await prefs.setString(_tablesKey, jsonString);
+    WidgetService.updateWidget();
   }
 
   static Future<void> addScheduleTable(ScheduleTable table) async {
@@ -71,6 +73,7 @@ class ScheduleDataService {
   static Future<void> setCurrentTableId(int id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_currentTableIdKey, id);
+    WidgetService.updateWidget();
   }
 
 
@@ -92,6 +95,7 @@ class ScheduleDataService {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = jsonEncode(courses.map((e) => e.toJson()).toList());
     await prefs.setString(_coursesKey, jsonString);
+    WidgetService.updateWidget();
   }
 
   static Future<void> addCourse(Course course) async {

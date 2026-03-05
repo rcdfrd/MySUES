@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg"
+    android:padding="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:text="测试课表标题 | 3.5 周四" />
+        <TextView
+            android:id="@+id/widget_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:text="第 1 周" />
+    </RelativeLayout>
+
+    <!-- Course 1 -->
+    <LinearLayout
+        android:id="@+id/course_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/line_green" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/course_1_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="课程名" />
+                <TextView
+                    android:id="@+id/course_1_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:text="08:00" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+                <TextView
+                    android:id="@+id/course_1_loc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="地点" />
+                <TextView
+                    android:id="@+id/course_1_endtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="09:40" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Course 2 -->
+    <LinearLayout
+        android:id="@+id/course_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/line_orange" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/course_2_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="课程名" />
+                <TextView
+                    android:id="@+id/course_2_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:text="08:00" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+                <TextView
+                    android:id="@+id/course_2_loc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="地点" />
+                <TextView
+                    android:id="@+id/course_2_endtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="09:40" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Course 3 -->
+    <LinearLayout
+        android:id="@+id/course_row_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/line_green" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/course_3_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="课程名" />
+                <TextView
+                    android:id="@+id/course_3_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:text="08:00" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+                <TextView
+                    android:id="@+id/course_3_loc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="地点" />
+                <TextView
+                    android:id="@+id/course_3_endtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="09:40" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Course 4 -->
+    <LinearLayout
+        android:id="@+id/course_row_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/line_orange" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/course_4_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="课程名" />
+                <TextView
+                    android:id="@+id/course_4_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:text="08:00" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+                <TextView
+                    android:id="@+id/course_4_loc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="地点" />
+                <TextView
+                    android:id="@+id/course_4_endtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="09:40" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+    
+    <!-- Course 5 -->
+    <LinearLayout
+        android:id="@+id/course_row_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/line_green" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/course_5_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="课程名" />
+                <TextView
+                    android:id="@+id/course_5_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:text="08:00" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+                <TextView
+                    android:id="@+id/course_5_loc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="地点" />
+                <TextView
+                    android:id="@+id/course_5_endtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="09:40" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Course 6 -->
+    <LinearLayout
+        android:id="@+id/course_row_6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+        <FrameLayout
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/line_orange" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/course_6_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="课程名" />
+                <TextView
+                    android:id="@+id/course_6_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:text="08:00" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp">
+                <TextView
+                    android:id="@+id/course_6_loc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="地点" />
+                <TextView
+                    android:id="@+id/course_6_endtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:text="09:40" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

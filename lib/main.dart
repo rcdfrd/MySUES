@@ -2,11 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/notification_service.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:mysues/services/widget_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_entry_screen.dart';
 
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    await WidgetService.updateWidget();
+    return Future.value(true);
+  });
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: false,
+  );
+  Workmanager().registerPeriodicTask(
+    "widgetUpdateTask",
+    "updateWidget",
+    frequency: const Duration(minutes: 15),
+  );
+  
+  // Also update widget on app launch
+  WidgetService.updateWidget();
+
   // Initialize theme service
   final themeService = ThemeService();
   await themeService.loadSettings();
