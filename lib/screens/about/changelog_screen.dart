@@ -15,6 +15,19 @@ class ChangelogScreen extends StatelessWidget {
         children: [
           _buildVersionCard(
             context,
+            version: '1.1.0',
+            date: '2026-03-11',
+            changes: [
+              '🌟 新增视频启动页效果',
+              '🌟 新增每日课表视图功能',
+              '🐛 修复应用图标包含透明通道的问题',
+              '🐛 修复课表时间表数据错误',
+              '🛠 优化课表页面显示样式',
+            ],
+            isLatest: true,
+          ),
+          _buildVersionCard(
+            context,
             version: '1.0.0',
             date: '2026-03-07',
             changes: [
@@ -22,7 +35,7 @@ class ChangelogScreen extends StatelessWidget {
               '🛠 更新致谢名单，新增赞助者',
               '🛠 调整彩蛋页面布局样式',
             ],
-            isLatest: true,
+            isLatest: false,
           ),
           _buildVersionCard(
             context,

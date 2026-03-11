@@ -2,6 +2,16 @@
 
 MySUES follows [Semantic Versioning 2.0.0](http://semver.org/).
 
+## 1.1.0
+
+`2026-03-11`
+
+- 🌟 Add video splash screen effect. @HsxMark
+- 🌟 Add daily schedule view feature. @HsxMark
+- 🐛 Fix application icon alpha channel issue. @HsxMark
+- 🐛 Fix schedule timetable data errors. @HsxMark
+- 🛠 Optimize schedule page display style. @HsxMark
+
 ## 1.0.0
 
 `2026-03-07`

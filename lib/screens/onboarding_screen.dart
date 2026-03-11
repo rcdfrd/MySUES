@@ -23,9 +23,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     _PageData(
       image: 'assets/images/example/scheduleinfo.PNG',
+      secondaryImage: 'assets/images/example/scheduledaily.PNG',
       isLogo: false,
       title: '查看课表',
-      description: '快速查看每周课程安排，支持导入教务系统课表。',
+      description: '快速查看每周或每日课程安排，支持导入教务系统课表。',
     ),
     _PageData(
       image: 'assets/images/example/scoreinfo.PNG',
@@ -215,28 +216,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  page.image,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
+            child: page.secondaryImage != null
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: _buildImageContainer(page.image),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildImageContainer(page.secondaryImage!),
+                      ),
+                    ],
+                  )
+                : _buildImageContainer(page.image),
           ),
           const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImageContainer(String imagePath) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
@@ -244,12 +261,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 class _PageData {
   final String image;
+  final String? secondaryImage;
   final bool isLogo;
   final String title;
   final String description;
 
   const _PageData({
     required this.image,
+    this.secondaryImage,
     required this.isLogo,
     required this.title,
     required this.description,
