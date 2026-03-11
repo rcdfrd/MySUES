@@ -27,6 +27,17 @@
             android:text="第 1 周" />
     </RelativeLayout>
 
+    <TextView
+        android:id="@+id/empty_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        android:text="今天已经没有课啦" />
+
     <!-- Course 1 -->
     <LinearLayout
         android:id="@+id/course_row_1"

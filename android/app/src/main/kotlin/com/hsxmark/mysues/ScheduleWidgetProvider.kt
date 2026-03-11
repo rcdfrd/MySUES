@@ -22,6 +22,8 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.widget_title, title)
                 setTextViewText(R.id.widget_week, week)
 
+                var hasVisibleCourse = false
+
                 for (i in 1..6) {
                     val courseName = widgetData.getString("course_${i}_name", "")
                     val courseTime = widgetData.getString("course_${i}_time", "")
@@ -37,12 +39,19 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                     if (courseName.isNullOrEmpty()) {
                         setViewVisibility(rowId, View.GONE)
                     } else {
+                        hasVisibleCourse = true
                         setViewVisibility(rowId, View.VISIBLE)
                         setTextViewText(nameId, courseName)
                         setTextViewText(timeId, courseTime)
                         setTextViewText(endtimeId, courseEnd)
                         setTextViewText(locId, courseLoc)
                     }
+                }
+
+                if (hasVisibleCourse) {
+                    setViewVisibility(R.id.empty_message, View.GONE)
+                } else {
+                    setViewVisibility(R.id.empty_message, View.VISIBLE)
                 }
             }
             appWidgetManager.updateAppWidget(widgetId, views)
