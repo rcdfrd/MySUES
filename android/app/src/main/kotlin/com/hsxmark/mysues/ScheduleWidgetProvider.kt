@@ -3,6 +3,7 @@ package com.hsxmark.mysues
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -15,6 +16,11 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences
     ) {
         appWidgetIds.forEach { widgetId ->
+            val options = appWidgetManager.getAppWidgetOptions(widgetId)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
+            // 4x2 ≈ 110dp → max 4 courses; 4x4 ≈ 250dp → max 8 courses
+            val maxCourses = if (minHeight >= 200) 8 else 4
+
             val views = RemoteViews(context.packageName, R.layout.widget_layout).apply {
                 val title = widgetData.getString("title", "今日无课")
                 val week = widgetData.getString("week", "")
@@ -24,7 +30,7 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
 
                 var hasVisibleCourse = false
 
-                for (i in 1..6) {
+                for (i in 1..8) {
                     val courseName = widgetData.getString("course_${i}_name", "")
                     val courseTime = widgetData.getString("course_${i}_time", "")
                     val courseEnd = widgetData.getString("course_${i}_endtime", "")
@@ -36,7 +42,7 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                     val endtimeId = context.resources.getIdentifier("course_${i}_endtime", "id", context.packageName)
                     val locId = context.resources.getIdentifier("course_${i}_loc", "id", context.packageName)
 
-                    if (courseName.isNullOrEmpty()) {
+                    if (courseName.isNullOrEmpty() || i > maxCourses) {
                         setViewVisibility(rowId, View.GONE)
                     } else {
                         hasVisibleCourse = true
@@ -56,5 +62,17 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
             }
             appWidgetManager.updateAppWidget(widgetId, views)
         }
+    }
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        // Re-render widget when size changes
+        val widgetData = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+        onUpdate(context, appWidgetManager, intArrayOf(appWidgetId), widgetData)
     }
 }

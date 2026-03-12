@@ -27,7 +27,7 @@ class WidgetService {
       if (currentTable == null) {
         await HomeWidget.saveWidgetData('title', '未设置课表');
         await HomeWidget.saveWidgetData('week', '');
-        for (int i = 1; i <= 6; i++) {
+        for (int i = 1; i <= 8; i++) {
           await HomeWidget.saveWidgetData('course_${i}_name', '');
         }
         await HomeWidget.updateWidget(
@@ -51,7 +51,7 @@ class WidgetService {
       
       int weekday = now.weekday; // 1..7 (Mon..Sun)
 
-      final title = '${currentTable.tableName} | ${now.month}.${now.day} ${_getWeekdayString(weekday)}';
+      final title = '${now.month}.${now.day} ${_getWeekdayString(weekday)}';
       final weekStr = '第 $currentWeek 周';
 
       await HomeWidget.saveWidgetData('title', title);
@@ -63,9 +63,25 @@ class WidgetService {
 
       final timeDetails = await ScheduleDataService.loadTimeDetails(timeTableId: currentTable.timeTableId);
 
-      for (int i = 1; i <= 6; i++) {
-        if (i <= todayCourses.length) {
-          final course = todayCourses[i - 1];
+      // Filter out courses that have already ended
+      final currentTimeStr = DateFormat('HH:mm').format(now);
+      final upcomingCourses = todayCourses.where((course) {
+        String endTime = course.endTime ?? '';
+        if (endTime.isEmpty && timeDetails.isNotEmpty) {
+          final endNode = course.startNode + course.step - 1;
+          final endDetail = timeDetails.cast<dynamic>().firstWhere(
+            (d) => d.node == endNode, orElse: () => null);
+          if (endDetail != null) {
+            endTime = endDetail.endTime;
+          }
+        }
+        if (endTime.isEmpty) return true; // Can't determine end time, keep it
+        return endTime.compareTo(currentTimeStr) > 0;
+      }).toList();
+
+      for (int i = 1; i <= 8; i++) {
+        if (i <= upcomingCourses.length) {
+          final course = upcomingCourses[i - 1];
           await HomeWidget.saveWidgetData('course_${i}_name', course.courseName);
           
           String startTime = course.startTime ?? '';
