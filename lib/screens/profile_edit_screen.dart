@@ -329,7 +329,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
                   child: _avatarFile == null
                       ? Padding(
@@ -371,7 +371,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   value,
                   style: TextStyle(
                     fontSize: 16,
-                    color: isEditable ? Colors.black87 : Colors.grey,
+                    color: isEditable ? Theme.of(context).textTheme.bodyLarge?.color : Colors.grey,
                   ),
                 ),
                 if (isEditable) ...[
