@@ -683,7 +683,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
   Widget _buildWeekDaySelector(ThemeData theme) {
     final now = DateTime.now();
     return SizedBox(
-      height: 64,
+      height: 72,
       child: PageView.builder(
         controller: _weekPageController,
         itemCount: _totalWeeks,
@@ -1047,29 +1047,36 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                       color: course.colorObj,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          course.courseName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(_currentTable!.courseTextColor),
+                        Flexible(
+                          child: Text(
+                            course.courseName,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(_currentTable!.courseTextColor),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         if (timeRange.isNotEmpty || course.room.isNotEmpty)
                           const SizedBox(height: 4),
                         if (timeRange.isNotEmpty || course.room.isNotEmpty)
-                          Text(
-                            [timeRange, if (course.room.isNotEmpty) course.room].where((s) => s.isNotEmpty).join(' · '),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(_currentTable!.courseTextColor).withValues(alpha: 0.85),
+                          Flexible(
+                            child: Text(
+                              [timeRange, if (course.room.isNotEmpty) course.room].where((s) => s.isNotEmpty).join(' · '),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(_currentTable!.courseTextColor).withValues(alpha: 0.85),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                       ],
