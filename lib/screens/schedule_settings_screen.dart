@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/schedule_table.dart';
+import 'schedule_shift_screen.dart';
 
 class ScheduleSettingsScreen extends StatefulWidget {
   final ScheduleTable? table; // Null for new table
@@ -126,6 +127,24 @@ class _ScheduleSettingsScreenState extends State<ScheduleSettingsScreen> {
             value: _showFloatingButton,
             onChanged: (v) => setState(() => _showFloatingButton = v),
           ),
+          if (widget.table != null) ...[
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Text('高级设置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+            ),
+            ListTile(
+              title: const Text('节假日调休'),
+              subtitle: const Text('指定日期课程调换'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ScheduleShiftScreen(table: widget.table!)),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
