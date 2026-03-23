@@ -13,7 +13,7 @@ class DisplaySettingsScreen extends StatefulWidget {
 
 class _DisplaySettingsScreenState extends State<DisplaySettingsScreen> {
   bool _liquidGlassEnabled = false;
-  bool _splashAnimationEnabled = true;
+  bool _splashAnimationEnabled = false;
   double? _previewOpacity;
 
   @override
