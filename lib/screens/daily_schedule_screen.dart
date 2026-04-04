@@ -6,6 +6,7 @@ import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart';
+import '../utils/ics_exporter.dart';
 import '../services/schedule_service.dart';
 import '../services/theme_service.dart';
 import 'add_course_screen.dart';
@@ -329,15 +330,44 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                         style: TextStyle(color: Colors.red, fontSize: 16),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _editCourse(context, course);
-                      },
-                      child: const Text(
-                        '编辑',
-                        style: TextStyle(color: Colors.red, fontSize: 16),
-                      ),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            try {
+                              await IcsExporter.exportCourses(
+                                [course],
+                                _currentTable!,
+                                _timeDetails,
+                                fileName: 'mysues_course_${course.id}.ics',
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('导出失败: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(
+                            '导出 ICS',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _editCourse(context, course);
+                          },
+                          child: const Text(
+                            '编辑',
+                            style: TextStyle(color: Colors.red, fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

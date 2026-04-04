@@ -6,6 +6,7 @@ import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import '../models/course.dart';
 import '../models/schedule_table.dart';
 import '../models/time_table.dart'; // Import Time models
+import '../utils/ics_exporter.dart';
 import '../services/schedule_service.dart';
 import '../services/theme_service.dart';
 import 'add_course_screen.dart';
@@ -342,15 +343,44 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                         style: TextStyle(color: Colors.red, fontSize: 16),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _editCourse(context, course);
-                      },
-                      child: const Text(
-                        '编辑',
-                        style: TextStyle(color: Colors.red, fontSize: 16),
-                      ),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            try {
+                              await IcsExporter.exportCourses(
+                                [course],
+                                _currentTable!,
+                                _timeDetails,
+                                fileName: 'mysues_course_${course.id}.ics',
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('导出失败: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(
+                            '导出 ICS',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _editCourse(context, course);
+                          },
+                          child: const Text(
+                            '编辑',
+                            style: TextStyle(color: Colors.red, fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -922,6 +952,34 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     child: const Text('导入课表'),
                   ),
                   MenuItemButton(
+                    leadingIcon: const Icon(Icons.ios_share),
+                    onPressed: () async {
+                      if (_currentTable != null && _courses.isNotEmpty) {
+                        try {
+                          await IcsExporter.exportCourses(
+                            _courses,
+                            _currentTable!,
+                            _timeDetails,
+                            fileName: 'mysues_${_currentTable!.tableName}.ics',
+                          );
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('导出失败: $e')),
+                            );
+                          }
+                        }
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('当前没有课程可以导出')),
+                          );
+                        }
+                      }
+                    },
+                    child: const Text('导出课表 (.ics)'),
+                  ),
+                  MenuItemButton(
                     leadingIcon: const Icon(Icons.add),
                     onPressed: () async {
                       if (_currentTable != null) {
@@ -1090,6 +1148,36 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             color: theme.colorScheme.onSurface.withValues(
                               alpha: 0.1,
                             ),
+                          ),
+                          _buildLiquidGlassMenuItem(
+                            context: dialogContext,
+                            icon: Icons.ios_share,
+                            label: '导出课表(.ics)',
+                            onTap: () async {
+                              Navigator.pop(dialogContext);
+                              if (_currentTable != null && _courses.isNotEmpty) {
+                                try {
+                                  await IcsExporter.exportCourses(
+                                    _courses,
+                                    _currentTable!,
+                                    _timeDetails,
+                                    fileName: 'mysues_${_currentTable!.tableName}.ics',
+                                  );
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('导出失败: $e')),
+                                    );
+                                  }
+                                }
+                              } else {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('当前没有课程可以导出')),
+                                  );
+                                }
+                              }
+                            },
                           ),
                           _buildLiquidGlassMenuItem(
                             context: dialogContext,
