@@ -4,8 +4,8 @@ import SwiftUI
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(),  title: "3.12 周四", week: "第 1 周", courses: [
-            CourseEntry(name: "测试课程", time: "22:30", endTime: "22:50", loc: "实训楼 王俊烨", colorIdx: 0),
-            CourseEntry(name: "课程2", time: "23:00", endTime: "23:30", loc: "交通楼12 张三", colorIdx: 1)
+            CourseEntry(name: "测试课程1", time: "08:15", endTime: "09:55", loc: "塔卫II 布拉施", colorIdx: 0),
+            CourseEntry(name: "测试课程2", time: "13:20", endTime: "14:40", loc: "欧绍恩 布拉施", colorIdx: 1)
         ])
     }
 
