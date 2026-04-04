@@ -1,7 +1,9 @@
 package com.hsxmark.mysues
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
@@ -16,12 +18,28 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences
     ) {
         appWidgetIds.forEach { widgetId ->
+            val launchIntent = context.packageManager
+                .getLaunchIntentForPackage(context.packageName)
+                ?.apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+
             val options = appWidgetManager.getAppWidgetOptions(widgetId)
             val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
             // 4x2 ≈ 110dp → max 4 courses; 4x4 ≈ 250dp → max 8 courses
             val maxCourses = if (minHeight >= 200) 8 else 4
 
             val views = RemoteViews(context.packageName, R.layout.widget_layout).apply {
+                launchIntent?.let { intent ->
+                    val pendingIntent = PendingIntent.getActivity(
+                        context,
+                        widgetId,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+                }
+
                 val title = widgetData.getString("title", "今日无课")
                 val week = widgetData.getString("week", "")
                 
