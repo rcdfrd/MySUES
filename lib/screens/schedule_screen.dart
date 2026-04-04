@@ -16,11 +16,25 @@ import 'import_classpdf_screen.dart'; // Import
 import 'login_webview_screen.dart'; // Import
 import '../utils/sync_disclaimer.dart';
 import '../utils/building_time_override.dart';
+import '../utils/screen_breakpoints.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final VoidCallback? onSwitchToDaily;
+  final ValueChanged<int>? onWeekChanged;
+  final void Function(Course course, int week)? onCourseTap;
+  final VoidCallback? onDataChanged;
+  final int? highlightedCourseId;
+  final bool showSwitchAction;
 
-  const ScheduleScreen({super.key, this.onSwitchToDaily});
+  const ScheduleScreen({
+    super.key,
+    this.onSwitchToDaily,
+    this.onWeekChanged,
+    this.onCourseTap,
+    this.onDataChanged,
+    this.highlightedCourseId,
+    this.showSwitchAction = true,
+  });
 
   /// Static reference to current state (avoids GlobalKey conflicts with AnimatedSwitcher)
   static ScheduleScreenState? _currentState;
@@ -126,6 +140,8 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     setState(() => _isLoading = false);
     // Notify container to show FAB after data is ready
     ScheduleViewContainer.containerKey.currentState?.setState(() {});
+    widget.onWeekChanged?.call(_currentWeek);
+    widget.onDataChanged?.call();
   }
 
   // _injectDemoCourses removed here
@@ -289,14 +305,27 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     return h >= _cellHeight * 0.5 ? h : course.step * _cellHeight;
   }
 
+  bool _useLargeScreenDetailPanel(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    return ScreenBreakpoints.isLargeDevice(context) && size.width > size.height;
+  }
+
   void _showCourseDetail(BuildContext context, Course course) {
+    if (_useLargeScreenDetailPanel(context)) {
+      _showCourseDetailSidePanel(context, course);
+      return;
+    }
+    _showCourseDetailBottomSheet(context, course);
+  }
+
+  void _showCourseDetailBottomSheet(BuildContext context, Course course) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetContext) {
         final isLiquidGlass = ThemeService().liquidGlassEnabled;
-        final theme = Theme.of(context);
+        final theme = Theme.of(sheetContext);
 
         Widget sheet = Container(
           decoration: isLiquidGlass
@@ -309,211 +338,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                   ),
                 ),
           padding: const EdgeInsets.only(top: 8),
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-              ),
-              // Top buttons
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        // Allow deleting
-                        _deleteCourse(context, course);
-                      },
-                      child: const Text(
-                        '删除',
-                        style: TextStyle(color: Colors.red, fontSize: 16),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: () async {
-                            try {
-                              await IcsExporter.exportCourses(
-                                [course],
-                                _currentTable!,
-                                _timeDetails,
-                                fileName: 'mysues_course_${course.id}.ics',
-                              );
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('导出失败: $e')),
-                                );
-                              }
-                            }
-                          },
-                          child: Text(
-                            '导出 ICS',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _editCourse(context, course);
-                          },
-                          child: const Text(
-                            '编辑',
-                            style: TextStyle(color: Colors.red, fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Title
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 4,
-                ),
-                child: Text(
-                  course.courseName,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              // Sub headers
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("详情", style: TextStyle(color: Colors.grey)),
-                    Text(
-                      "以下内容可长按复制",
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Info Card
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildDetailRow(
-                              icon: Icons.calendar_today_outlined,
-                              content:
-                                  '第 ${course.startWeek} - ${course.endWeek} 周',
-                              color: Colors.redAccent,
-                            ),
-                            const Divider(height: 1, indent: 56),
-                            _buildDetailRow(
-                              icon: Icons.access_time,
-                              content:
-                                  '周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}',
-                              color: Colors.redAccent,
-                            ),
-                            if (course.teacher.isNotEmpty) ...[
-                              const Divider(height: 1, indent: 56),
-                              _buildDetailRow(
-                                icon: Icons.person_outline,
-                                content: course.teacher,
-                                color: Colors.redAccent,
-                              ),
-                            ],
-                            if (course.room.isNotEmpty) ...[
-                              const Divider(height: 1, indent: 56),
-                              _buildDetailRow(
-                                icon: Icons.location_on_outlined,
-                                content: course.room,
-                                color: Colors.redAccent,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-                      // Actions Card
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildActionRow(
-                              icon: Icons.copy,
-                              text: '复制课程名称',
-                              color: Colors.redAccent,
-                              onTap: () {
-                                Clipboard.setData(
-                                  ClipboardData(text: course.courseName),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('已复制课程名称')),
-                                );
-                              },
-                            ),
-                            const Divider(height: 1, indent: 56),
-                            _buildActionRow(
-                              icon: Icons.copy,
-                              text: '复制课程信息为文本',
-                              color: Colors.redAccent,
-                              onTap: () {
-                                final info =
-                                    '${course.courseName}\n周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}\n${course.teacher} ${course.room}';
-                                Clipboard.setData(ClipboardData(text: info));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('已复制课程信息')),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          height: MediaQuery.of(sheetContext).size.height * 0.75,
+          child: _buildCourseDetailContent(
+            sheetContext,
+            course,
+            showHandle: true,
+            showCloseButton: false,
           ),
         );
 
         if (isLiquidGlass) {
-          final brightness = MediaQuery.platformBrightnessOf(context);
+          final brightness = MediaQuery.platformBrightnessOf(sheetContext);
           final isDark = brightness == Brightness.dark;
           sheet = LiquidGlass.withOwnLayer(
             settings: LiquidGlassSettings.figma(
@@ -535,21 +370,296 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  void _showCourseDetailSidePanel(BuildContext context, Course course) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'course_detail_panel',
+      barrierColor: Colors.black45,
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        final size = MediaQuery.sizeOf(dialogContext);
+        final panelWidth = (size.width * 0.36).clamp(360.0, 540.0).toDouble();
+        final isLiquidGlass = ThemeService().liquidGlassEnabled;
+        final theme = Theme.of(dialogContext);
+
+        Widget panel = Container(
+          width: panelWidth,
+          height: size.height - 28,
+          margin: const EdgeInsets.fromLTRB(0, 14, 14, 14),
+          decoration: isLiquidGlass
+              ? null
+              : BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+          child: _buildCourseDetailContent(
+            dialogContext,
+            course,
+            showHandle: false,
+            showCloseButton: true,
+          ),
+        );
+
+        if (isLiquidGlass) {
+          final brightness = MediaQuery.platformBrightnessOf(dialogContext);
+          final isDark = brightness == Brightness.dark;
+          panel = LiquidGlass.withOwnLayer(
+            settings: LiquidGlassSettings.figma(
+              depth: 60,
+              refraction: 110,
+              dispersion: 4,
+              frost: 3,
+              lightAngle: math.pi / 4,
+              glassColor: theme.colorScheme.surface.withValues(alpha: 0.85),
+              lightIntensity: isDark ? 75 : 55,
+            ),
+            shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+            child: Material(color: Colors.transparent, child: panel),
+          );
+        }
+
+        return Align(alignment: Alignment.centerRight, child: panel);
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curve = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return FadeTransition(
+          opacity: curve,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.08, 0),
+              end: Offset.zero,
+            ).animate(curve),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCourseDetailContent(
+    BuildContext context,
+    Course course, {
+    required bool showHandle,
+    required bool showCloseButton,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showHandle)
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+          )
+        else
+          const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  _deleteCourse(context, course);
+                },
+                child: const Text(
+                  '删除',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              ),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await IcsExporter.exportCourses(
+                          [course],
+                          _currentTable!,
+                          _timeDetails,
+                          fileName: 'mysues_course_${course.id}.ics',
+                        );
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('导出失败: $e')));
+                        }
+                      }
+                    },
+                    child: Text(
+                      '导出 ICS',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _editCourse(context, course);
+                    },
+                    child: const Text(
+                      '编辑',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                  ),
+                  if (showCloseButton)
+                    IconButton(
+                      tooltip: '关闭',
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4),
+          child: Text(
+            course.courseName,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text(
+                '详情',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '以下内容可长按复制',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildDetailRow(
+                        icon: Icons.calendar_today_outlined,
+                        content: '第 ${course.startWeek} - ${course.endWeek} 周',
+                        color: Colors.redAccent,
+                      ),
+                      const Divider(height: 1, indent: 56),
+                      _buildDetailRow(
+                        icon: Icons.access_time,
+                        content:
+                            '周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}',
+                        color: Colors.redAccent,
+                      ),
+                      if (course.teacher.isNotEmpty) ...[
+                        const Divider(height: 1, indent: 56),
+                        _buildDetailRow(
+                          icon: Icons.person_outline,
+                          content: course.teacher,
+                          color: Colors.redAccent,
+                        ),
+                      ],
+                      if (course.room.isNotEmpty) ...[
+                        const Divider(height: 1, indent: 56),
+                        _buildDetailRow(
+                          icon: Icons.location_on_outlined,
+                          content: course.room,
+                          color: Colors.redAccent,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildActionRow(
+                        icon: Icons.copy,
+                        text: '复制课程名称',
+                        color: Colors.redAccent,
+                        onTap: () {
+                          Clipboard.setData(
+                            ClipboardData(text: course.courseName),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已复制课程名称')),
+                          );
+                        },
+                      ),
+                      const Divider(height: 1, indent: 56),
+                      _buildActionRow(
+                        icon: Icons.copy,
+                        text: '复制课程信息为文本',
+                        color: Colors.redAccent,
+                        onTap: () {
+                          final info =
+                              '${course.courseName}\n周${['一', '二', '三', '四', '五', '六', '日'][course.day - 1]} ${course.nodeString} ${_getTimeRange(course)}\n${course.teacher} ${course.room}';
+                          Clipboard.setData(ClipboardData(text: info));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('已复制课程信息')),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDetailRow({
     required IconData icon,
     required String content,
     required Color color,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(content, style: const TextStyle(fontSize: 16)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      onLongPress: () {
-        Clipboard.setData(ClipboardData(text: content));
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('已复制')));
-      },
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(content, style: const TextStyle(fontSize: 16)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        onLongPress: () {
+          Clipboard.setData(ClipboardData(text: content));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('已复制')));
+        },
+      ),
     );
   }
 
@@ -559,14 +669,17 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     required Color color,
     VoidCallback? onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(
-        text,
-        style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(
+          text,
+          style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        onTap: onTap,
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      onTap: onTap,
     );
   }
 
@@ -873,13 +986,14 @@ class ScheduleScreenState extends State<ScheduleScreen> {
             : null,
         elevation: ThemeService().liquidGlassEnabled ? 0 : null,
         actions: [
-          Tooltip(
-            message: '切换到日视图',
-            child: IconButton(
-              onPressed: widget.onSwitchToDaily,
-              icon: const Icon(Icons.view_day_outlined, size: 22),
+          if (widget.showSwitchAction)
+            Tooltip(
+              message: '切换到日视图',
+              child: IconButton(
+                onPressed: widget.onSwitchToDaily,
+                icon: const Icon(Icons.view_day_outlined, size: 22),
+              ),
             ),
-          ),
           ListenableBuilder(
             listenable: ThemeService(),
             builder: (context, _) {
@@ -964,9 +1078,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                           );
                         } catch (e) {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('导出失败: $e')),
-                            );
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text('导出失败: $e')));
                           }
                         }
                       } else {
@@ -1043,6 +1157,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
           });
           // Notify container to refresh FAB label
           ScheduleViewContainer.containerKey.currentState?.setState(() {});
+          widget.onWeekChanged?.call(_currentWeek);
         },
         itemBuilder: (context, index) {
           final weekNum = index + 1;
@@ -1155,13 +1270,15 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                             label: '导出课表(.ics)',
                             onTap: () async {
                               Navigator.pop(dialogContext);
-                              if (_currentTable != null && _courses.isNotEmpty) {
+                              if (_currentTable != null &&
+                                  _courses.isNotEmpty) {
                                 try {
                                   await IcsExporter.exportCourses(
                                     _courses,
                                     _currentTable!,
                                     _timeDetails,
-                                    fileName: 'mysues_${_currentTable!.tableName}.ics',
+                                    fileName:
+                                        'mysues_${_currentTable!.tableName}.ics',
                                   );
                                 } catch (e) {
                                   if (mounted) {
@@ -1513,6 +1630,13 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                   isNonCurrentWeek: false,
                                   colIndex: flexColIndex[course] ?? 0,
                                   totalCols: flexTotalCols[course] ?? 1,
+                                  onTap: () {
+                                    widget.onCourseTap?.call(
+                                      course,
+                                      _currentWeek,
+                                    );
+                                    _showCourseDetail(context, course);
+                                  },
                                 ),
                               );
                               for (int i = 0; i < course.step; i++) {
@@ -1562,6 +1686,10 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                         visibleIndices: visibleIndices,
                                         dayColWidth: dayColWidth,
                                         isNonCurrentWeek: true,
+                                        onTap: () {
+                                          widget.onCourseTap?.call(course, w);
+                                          _showCourseDetail(context, course);
+                                        },
                                       ),
                                     );
                                     // Mark slots as occupied so further weeks don't override this one
@@ -1599,6 +1727,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     required bool isNonCurrentWeek,
     int colIndex = 0,
     int totalCols = 1,
+    VoidCallback? onTap,
   }) {
     // Correct day index (1-7) -> (0-6)
     final dayIndex = course.day - 1;
@@ -1641,6 +1770,9 @@ class ScheduleScreenState extends State<ScheduleScreen> {
     final textColor = isNonCurrentWeek
         ? Color(_currentTable!.courseTextColor).withValues(alpha: 0.6)
         : Color(_currentTable!.courseTextColor);
+    final isHighlighted =
+        widget.highlightedCourseId != null &&
+        widget.highlightedCourseId == course.id;
 
     return Positioned(
       left: displayIndex * dayColWidth + colIndex * (dayColWidth / totalCols),
@@ -1648,15 +1780,36 @@ class ScheduleScreenState extends State<ScheduleScreen> {
       width: (dayColWidth / totalCols) - 1, // spacing
       height: height - 1, // spacing
       child: GestureDetector(
-        onTap: () => _showCourseDetail(context, course),
+        onTap:
+            onTap ??
+            () {
+              widget.onCourseTap?.call(course, _currentWeek);
+              _showCourseDetail(context, course);
+            },
         child: Container(
           margin: const EdgeInsets.all(1),
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(4),
-            border: isNonCurrentWeek
-                ? Border.all(color: Colors.grey.withValues(alpha: 0.3))
+            border: isHighlighted
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  )
+                : (isNonCurrentWeek
+                      ? Border.all(color: Colors.grey.withValues(alpha: 0.3))
+                      : null),
+            boxShadow: isHighlighted
+                ? [
+                    BoxShadow(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ]
                 : null,
           ),
           child: Stack(

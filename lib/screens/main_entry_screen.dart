@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/theme_service.dart';
+import 'package:mysues/utils/screen_breakpoints.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
 import 'schedule_view_container.dart';
 import 'transcript_screen.dart';
@@ -19,9 +20,7 @@ class MainEntryScreen extends StatefulWidget {
   /// Call this from other screens (e.g. About) to re-show the tutorial.
   static void showOnboarding(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const OnboardingScreen(isReview: true),
-      ),
+      MaterialPageRoute(builder: (_) => const OnboardingScreen(isReview: true)),
     );
   }
 
@@ -61,7 +60,8 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
       });
     } else {
       // Agreement already accepted — check onboarding
-      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      final onboardingCompleted =
+          prefs.getBool('onboarding_completed') ?? false;
       if (!onboardingCompleted && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showOnboarding(prefs);
@@ -87,12 +87,18 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Icon(Icons.article_outlined, size: 18, color: Theme.of(dialogContext).colorScheme.primary),
+                    Icon(
+                      Icons.article_outlined,
+                      size: 18,
+                      color: Theme.of(dialogContext).colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
                         Navigator.of(dialogContext).push(
-                          MaterialPageRoute(builder: (_) => const UserAgreementScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const UserAgreementScreen(),
+                          ),
                         );
                       },
                       child: Text(
@@ -108,12 +114,18 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Icon(Icons.shield_outlined, size: 18, color: Theme.of(dialogContext).colorScheme.primary),
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 18,
+                      color: Theme.of(dialogContext).colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
                         Navigator.of(dialogContext).push(
-                          MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const PrivacyPolicyScreen(),
+                          ),
                         );
                       },
                       child: Text(
@@ -137,12 +149,20 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.warning_amber_rounded, size: 18, color: Colors.orange.shade700),
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        size: 18,
+                        color: Colors.orange.shade700,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           '重要提示：本产品为公益性质的完全免费产品，若您是通过付费获取本产品那您遭遇了诈骗。',
-                          style: TextStyle(fontSize: 12, color: Colors.orange.shade900, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade900,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
@@ -192,10 +212,61 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
 
   Future<void> _showOnboarding(SharedPreferences prefs) async {
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
     await prefs.setBool('onboarding_completed', true);
+  }
+
+  Widget _buildLeftNavigationRail(BuildContext context, bool useLiquidGlass) {
+    final theme = Theme.of(context);
+    return Container(
+      width: 96,
+      decoration: BoxDecoration(
+        color: useLiquidGlass
+            ? theme.colorScheme.surface.withValues(alpha: 0.55)
+            : theme.colorScheme.surface,
+        border: Border(
+          right: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        right: false,
+        left: false,
+        bottom: false,
+        child: NavigationRail(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          labelType: NavigationRailLabelType.all,
+          groupAlignment: -0.85,
+          destinations: const [
+            NavigationRailDestination(
+              icon: Icon(Icons.calendar_month),
+              label: Text('课程表'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.description),
+              label: Text('成绩单'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.edit_calendar),
+              label: Text('考试信息'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.person),
+              label: Text('我'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -206,84 +277,101 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
         final useLiquidGlass = ThemeService().liquidGlassEnabled;
         final bgPath = ThemeService().backgroundImagePath;
         final hasBg = bgPath != null;
+        final size = MediaQuery.sizeOf(context);
+        final useRightRail =
+            ScreenBreakpoints.isLargeDevice(context) &&
+            size.width > size.height;
+
+        final pageStack = IndexedStack(
+          index: _currentIndex,
+          children: List.generate(4, (i) {
+            if (_cachedPages[i] == null && i != _currentIndex) {
+              return const SizedBox.shrink();
+            }
+            return _getPage(i);
+          }),
+        );
 
         Widget scaffold = Scaffold(
-          extendBody: useLiquidGlass,
+          extendBody: useLiquidGlass && !useRightRail,
           backgroundColor: hasBg ? Colors.transparent : null,
-          body: IndexedStack(
-            index: _currentIndex,
-            children: List.generate(4, (i) {
-              if (_cachedPages[i] == null && i != _currentIndex) {
-                return const SizedBox.shrink();
-              }
-              return _getPage(i);
-            }),
-          ),
-          bottomNavigationBar: useLiquidGlass 
-            ? LiquidGlassBottomBar(
-                selectedIndex: _currentIndex,
-                onTabSelected: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                tabs: const [
-                  LiquidGlassBottomBarTab(
-                    icon: Icons.calendar_month,
-                    label: '课程表',
-                  ),
-                  LiquidGlassBottomBarTab(
-                    icon: Icons.description,
-                    label: '成绩单',
-                  ),
-                  LiquidGlassBottomBarTab(
-                    icon: Icons.edit_calendar,
-                    label: '考试信息',
-                  ),
-                  LiquidGlassBottomBarTab(
-                    icon: Icons.person,
-                    label: '我',
-                  ),
-                ],
-              )
-            : BottomNavigationBar(
-                currentIndex: _currentIndex,
-                onTap: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                type: BottomNavigationBarType.fixed, // 超过3个item时需要这个，或者设置selectedItemColor等
-                selectedItemColor: Theme.of(context).colorScheme.primary,
-                unselectedItemColor: Colors.grey,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_month), // 或者 table_chart
-                    label: '课程表',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.description), // 或者 assignment_outlined
-                    label: '成绩单',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.edit_calendar), // 或者 event_note
-                    label: '考试信息',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person),
-                    label: '我',
-                  ),
-                ],
-              ),
+          body: useRightRail
+              ? Row(
+                  children: [
+                    _buildLeftNavigationRail(context, useLiquidGlass),
+                    Expanded(child: pageStack),
+                  ],
+                )
+              : pageStack,
+          bottomNavigationBar: useRightRail
+              ? null
+              : (useLiquidGlass
+                    ? LiquidGlassBottomBar(
+                        selectedIndex: _currentIndex,
+                        onTabSelected: (index) {
+                          setState(() {
+                            _currentIndex = index;
+                          });
+                        },
+                        tabs: const [
+                          LiquidGlassBottomBarTab(
+                            icon: Icons.calendar_month,
+                            label: '课程表',
+                          ),
+                          LiquidGlassBottomBarTab(
+                            icon: Icons.description,
+                            label: '成绩单',
+                          ),
+                          LiquidGlassBottomBarTab(
+                            icon: Icons.edit_calendar,
+                            label: '考试信息',
+                          ),
+                          LiquidGlassBottomBarTab(
+                            icon: Icons.person,
+                            label: '我',
+                          ),
+                        ],
+                      )
+                    : BottomNavigationBar(
+                        currentIndex: _currentIndex,
+                        onTap: (index) {
+                          setState(() {
+                            _currentIndex = index;
+                          });
+                        },
+                        type: BottomNavigationBarType.fixed,
+                        selectedItemColor: Theme.of(
+                          context,
+                        ).colorScheme.primary,
+                        unselectedItemColor: Colors.grey,
+                        items: const [
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.calendar_month),
+                            label: '课程表',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.description),
+                            label: '成绩单',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.edit_calendar),
+                            label: '考试信息',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.person),
+                            label: '我',
+                          ),
+                        ],
+                      )),
         );
 
         if (!hasBg) return scaffold;
 
         // Wrap with Theme override so child Scaffolds inherit transparent background
         scaffold = Theme(
-          data: Theme.of(context).copyWith(
-            scaffoldBackgroundColor: Colors.transparent,
-          ),
+          data: Theme.of(
+            context,
+          ).copyWith(scaffoldBackgroundColor: Colors.transparent),
           child: scaffold,
         );
 
