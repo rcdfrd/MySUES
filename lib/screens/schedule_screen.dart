@@ -482,6 +482,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                     onPressed: () async {
                       try {
                         await IcsExporter.exportCourses(
+                          context,
                           [course],
                           _currentTable!,
                           _timeDetails,
@@ -1071,6 +1072,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                       if (_currentTable != null && _courses.isNotEmpty) {
                         try {
                           await IcsExporter.exportCourses(
+                            context,
                             _courses,
                             _currentTable!,
                             _timeDetails,
@@ -1274,6 +1276,7 @@ class ScheduleScreenState extends State<ScheduleScreen> {
                                   _courses.isNotEmpty) {
                                 try {
                                   await IcsExporter.exportCourses(
+                                    context,
                                     _courses,
                                     _currentTable!,
                                     _timeDetails,

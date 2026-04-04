@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -10,6 +11,7 @@ import '../utils/building_time_override.dart';
 class IcsExporter {
   /// 导出并分享一份或多份课程的 ICS 日历文件
   static Future<void> exportCourses(
+    BuildContext context,
     List<Course> courses, 
     ScheduleTable currentTable, 
     List<TimeDetail> timeDetails, 
@@ -21,7 +23,14 @@ class IcsExporter {
     final file = File('${tempDir.path}/$fileName');
     await file.writeAsString(icsString);
     
-    await Share.shareXFiles([XFile(file.path)]);
+    // Provide sharePositionOrigin for iPad support
+    final box = context.findRenderObject() as RenderBox?;
+    final rect = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      sharePositionOrigin: rect,
+    );
   }
 
   /// 针对一组课程生成完整的 ICS 文件字符串

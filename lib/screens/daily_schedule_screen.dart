@@ -336,6 +336,7 @@ class DailyScheduleScreenState extends State<DailyScheduleScreen> {
                           onPressed: () async {
                             try {
                               await IcsExporter.exportCourses(
+                                context,
                                 [course],
                                 _currentTable!,
                                 _timeDetails,
