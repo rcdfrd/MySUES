@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/schedule_service.dart';
 import 'package:mysues/models/course.dart';
 import 'package:mysues/models/schedule_table.dart';
+import 'package:mysues/utils/building_time_override.dart';
 
 class WidgetService {
   static const String appGroupId = 'group.com.hsxmark.mysues';
@@ -69,12 +70,15 @@ class WidgetService {
       final currentMinutes = now.hour * 60 + now.minute;
       final upcomingCourses = todayCourses.where((course) {
         String endTime = course.endTime ?? '';
-        if (endTime.isEmpty && timeDetails.isNotEmpty) {
-          final endNode = course.startNode + course.step - 1;
-          final endDetail = timeDetails.cast<dynamic>().firstWhere(
-            (d) => d.node == endNode, orElse: () => null);
-          if (endDetail != null) {
-            endTime = endDetail.endTime;
+        final endNode = course.startNode + course.step - 1;
+        if (endTime.isEmpty) {
+          endTime = BuildingTimeOverride.getOverrideEndTime(course.room, endNode) ?? '';
+          if (endTime.isEmpty && timeDetails.isNotEmpty) {
+            final endDetail = timeDetails.cast<dynamic>().firstWhere(
+              (d) => d.node == endNode, orElse: () => null);
+            if (endDetail != null) {
+              endTime = endDetail.endTime;
+            }
           }
         }
         if (endTime.isEmpty) return true; // Can't determine end time, keep it
@@ -99,17 +103,24 @@ class WidgetService {
           
           String startTime = course.startTime ?? '';
           String endTime = course.endTime ?? '';
-          if (startTime.isEmpty && timeDetails.isNotEmpty) {
-             final startDetail = timeDetails.cast<dynamic>().firstWhere((d) => d.node == course.startNode, orElse: () => null);
-             if (startDetail != null) {
-                 startTime = startDetail.startTime;
+          final endNode = course.startNode + course.step - 1;
+          
+          if (startTime.isEmpty) {
+             startTime = BuildingTimeOverride.getOverrideStartTime(course.room, course.startNode) ?? '';
+             if (startTime.isEmpty && timeDetails.isNotEmpty) {
+                 final startDetail = timeDetails.cast<dynamic>().firstWhere((d) => d.node == course.startNode, orElse: () => null);
+                 if (startDetail != null) {
+                     startTime = startDetail.startTime;
+                 }
              }
           }
-          if (endTime.isEmpty && timeDetails.isNotEmpty) {
-             final endNode = course.startNode + course.step - 1;
-             final endDetail = timeDetails.cast<dynamic>().firstWhere((d) => d.node == endNode, orElse: () => null);
-             if (endDetail != null) {
-                 endTime = endDetail.endTime;
+          if (endTime.isEmpty) {
+             endTime = BuildingTimeOverride.getOverrideEndTime(course.room, endNode) ?? '';
+             if (endTime.isEmpty && timeDetails.isNotEmpty) {
+                 final endDetail = timeDetails.cast<dynamic>().firstWhere((d) => d.node == endNode, orElse: () => null);
+                 if (endDetail != null) {
+                     endTime = endDetail.endTime;
+                 }
              }
           }
 
