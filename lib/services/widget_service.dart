@@ -1,8 +1,6 @@
 import 'package:home_widget/home_widget.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mysues/services/schedule_service.dart';
-import 'package:mysues/models/course.dart';
 import 'package:mysues/models/schedule_table.dart';
 import 'package:mysues/utils/building_time_override.dart';
 
@@ -30,6 +28,10 @@ class WidgetService {
         await HomeWidget.saveWidgetData('week', '');
         for (int i = 1; i <= 8; i++) {
           await HomeWidget.saveWidgetData('course_${i}_name', '');
+          await HomeWidget.saveWidgetData('course_${i}_time', '');
+          await HomeWidget.saveWidgetData('course_${i}_endtime', '');
+          await HomeWidget.saveWidgetData('course_${i}_loc', '');
+          await HomeWidget.saveWidgetData('course_${i}_color', '');
         }
         await HomeWidget.updateWidget(
           androidName: androidWidgetName,
@@ -40,9 +42,12 @@ class WidgetService {
 
       final now = DateTime.now();
       // Calculate current week
-      final startTermDate = currentTable.startDate != null 
-          ? DateTime.parse(currentTable.startDate!)
-          : null;
+      DateTime? startTermDate;
+      try {
+        startTermDate = DateTime.parse(currentTable.startDate);
+      } catch (_) {
+        startTermDate = null;
+      }
       
       int currentWeek = 1;
       if (startTermDate != null) {
@@ -127,11 +132,13 @@ class WidgetService {
           await HomeWidget.saveWidgetData('course_${i}_time', startTime);
           await HomeWidget.saveWidgetData('course_${i}_endtime', endTime);
           await HomeWidget.saveWidgetData('course_${i}_loc', '${course.room} ${course.teacher}'.trim());
+          await HomeWidget.saveWidgetData('course_${i}_color', course.color);
         } else {
           await HomeWidget.saveWidgetData('course_${i}_name', '');
           await HomeWidget.saveWidgetData('course_${i}_time', '');
           await HomeWidget.saveWidgetData('course_${i}_endtime', '');
           await HomeWidget.saveWidgetData('course_${i}_loc', '');
+          await HomeWidget.saveWidgetData('course_${i}_color', '');
         }
       }
 

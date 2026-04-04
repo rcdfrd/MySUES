@@ -4,8 +4,8 @@ import SwiftUI
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(),  title: "3.12 周四", week: "第 1 周", courses: [
-            CourseEntry(name: "测试课程1", time: "08:15", endTime: "09:55", loc: "塔卫II 布拉施", colorIdx: 0),
-            CourseEntry(name: "测试课程2", time: "13:20", endTime: "14:40", loc: "欧绍恩 布拉施", colorIdx: 1)
+            CourseEntry(name: "测试课程1", time: "08:15", endTime: "09:55", loc: "塔卫II 布拉施", colorIdx: 0, colorHex: "#2ECC71"),
+            CourseEntry(name: "测试课程2", time: "13:20", endTime: "14:40", loc: "欧绍恩 布拉施", colorIdx: 1, colorHex: "#F39C12")
         ])
     }
 
@@ -59,7 +59,7 @@ struct Provider: TimelineProvider {
                 return endDate > date
             }
             let reindexed = remaining.enumerated().map { (idx, c) in
-                CourseEntry(name: c.name, time: c.time, endTime: c.endTime, loc: c.loc, colorIdx: idx % 2)
+                CourseEntry(name: c.name, time: c.time, endTime: c.endTime, loc: c.loc, colorIdx: idx % 2, colorHex: c.colorHex)
             }
             entries.append(SimpleEntry(date: date, title: title, week: week, courses: reindexed))
         }
@@ -85,7 +85,8 @@ struct Provider: TimelineProvider {
                 let time = sharedDefaults?.string(forKey: "course_\(i)_time") ?? ""
                 let endTime = sharedDefaults?.string(forKey: "course_\(i)_endtime") ?? ""
                 let loc = sharedDefaults?.string(forKey: "course_\(i)_loc") ?? ""
-                courses.append(CourseEntry(name: name, time: time, endTime: endTime, loc: loc, colorIdx: (i-1) % 2))
+                let colorHex = sharedDefaults?.string(forKey: "course_\(i)_color")
+                courses.append(CourseEntry(name: name, time: time, endTime: endTime, loc: loc, colorIdx: (i-1) % 2, colorHex: colorHex))
             }
         }
         return courses
@@ -121,7 +122,7 @@ struct Provider: TimelineProvider {
             return endDate > now
         }
         let reindexed = remaining.enumerated().map { (idx, c) in
-            CourseEntry(name: c.name, time: c.time, endTime: c.endTime, loc: c.loc, colorIdx: idx % 2)
+            CourseEntry(name: c.name, time: c.time, endTime: c.endTime, loc: c.loc, colorIdx: idx % 2, colorHex: c.colorHex)
         }
         
         return SimpleEntry(date: now, title: title, week: week, courses: reindexed)
@@ -134,6 +135,7 @@ struct CourseEntry: Hashable {
     let endTime: String
     let loc: String
     let colorIdx: Int
+    let colorHex: String?
 }
 
 struct SimpleEntry: TimelineEntry {
@@ -146,6 +148,52 @@ struct SimpleEntry: TimelineEntry {
 struct ScheduleWidgetEntryView : View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
+
+    private func courseBarColor(for course: CourseEntry) -> Color {
+        if let parsed = parseHexColor(course.colorHex) {
+            return parsed
+        }
+        return fallbackBarColor(for: course.colorIdx)
+    }
+
+    private func fallbackBarColor(for index: Int) -> Color {
+        index == 0
+            ? Color(red: 46/255, green: 204/255, blue: 113/255)
+            : Color(red: 243/255, green: 156/255, blue: 18/255)
+    }
+
+    private func parseHexColor(_ rawHex: String?) -> Color? {
+        guard var hex = rawHex?.trimmingCharacters(in: .whitespacesAndNewlines), !hex.isEmpty else {
+            return nil
+        }
+
+        if hex.hasPrefix("#") {
+            hex.removeFirst()
+        }
+
+        guard (hex.count == 6 || hex.count == 8), let value = UInt64(hex, radix: 16) else {
+            return nil
+        }
+
+        let alpha: Double
+        let red: Double
+        let green: Double
+        let blue: Double
+
+        if hex.count == 8 {
+            alpha = Double((value >> 24) & 0xFF) / 255.0
+            red = Double((value >> 16) & 0xFF) / 255.0
+            green = Double((value >> 8) & 0xFF) / 255.0
+            blue = Double(value & 0xFF) / 255.0
+        } else {
+            alpha = 1.0
+            red = Double((value >> 16) & 0xFF) / 255.0
+            green = Double((value >> 8) & 0xFF) / 255.0
+            blue = Double(value & 0xFF) / 255.0
+        }
+
+        return Color(red: red, green: green, blue: blue, opacity: alpha)
+    }
 
     var body: some View {
         let maxCourses = family == .systemLarge ? 6 : 2
@@ -174,7 +222,7 @@ struct ScheduleWidgetEntryView : View {
                     ForEach(visibleCourses, id: \.self) { course in
                         HStack(spacing: 8) {
                             Rectangle()
-                                .fill(course.colorIdx == 0 ? Color(red: 46/255, green: 204/255, blue: 113/255) : Color(red: 243/255, green: 156/255, blue: 18/255))
+                                .fill(courseBarColor(for: course))
                                 .frame(width: 3)
                                 .cornerRadius(1.5)
                             

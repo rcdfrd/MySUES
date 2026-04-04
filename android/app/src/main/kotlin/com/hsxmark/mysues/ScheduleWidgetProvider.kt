@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -53,12 +54,14 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                     val courseTime = widgetData.getString("course_${i}_time", "")
                     val courseEnd = widgetData.getString("course_${i}_endtime", "")
                     val courseLoc = widgetData.getString("course_${i}_loc", "")
+                    val courseColor = widgetData.getString("course_${i}_color", "")
                     
                     val rowId = context.resources.getIdentifier("course_row_$i", "id", context.packageName)
                     val nameId = context.resources.getIdentifier("course_${i}_name", "id", context.packageName)
                     val timeId = context.resources.getIdentifier("course_${i}_time", "id", context.packageName)
                     val endtimeId = context.resources.getIdentifier("course_${i}_endtime", "id", context.packageName)
                     val locId = context.resources.getIdentifier("course_${i}_loc", "id", context.packageName)
+                    val barId = context.resources.getIdentifier("course_${i}_bar", "id", context.packageName)
 
                     if (courseName.isNullOrEmpty() || i > maxCourses) {
                         setViewVisibility(rowId, View.GONE)
@@ -69,6 +72,9 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
                         setTextViewText(timeId, courseTime)
                         setTextViewText(endtimeId, courseEnd)
                         setTextViewText(locId, courseLoc)
+
+                        val resolvedColor = parseCourseColor(courseColor) ?: fallbackColor(i)
+                        setInt(barId, "setBackgroundColor", resolvedColor)
                     }
                 }
 
@@ -92,5 +98,26 @@ class ScheduleWidgetProvider : HomeWidgetProvider() {
         // Re-render widget when size changes
         val widgetData = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
         onUpdate(context, appWidgetManager, intArrayOf(appWidgetId), widgetData)
+    }
+
+    private fun parseCourseColor(rawColor: String?): Int? {
+        if (rawColor.isNullOrBlank()) return null
+        val trimmed = rawColor.trim()
+        val normalized = if (trimmed.startsWith("#")) trimmed else "#$trimmed"
+        if (normalized.length != 7 && normalized.length != 9) return null
+
+        return try {
+            Color.parseColor(normalized)
+        } catch (_: IllegalArgumentException) {
+            null
+        }
+    }
+
+    private fun fallbackColor(index: Int): Int {
+        return if (index % 2 == 1) {
+            Color.parseColor("#2ECC71")
+        } else {
+            Color.parseColor("#F39C12")
+        }
     }
 }
