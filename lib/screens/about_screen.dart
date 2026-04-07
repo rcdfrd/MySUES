@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:mysues/services/app_update_service.dart';
 import 'package:mysues/screens/about/user_agreement_screen.dart';
 import 'package:mysues/screens/about/privacy_policy_screen.dart';
 import 'package:mysues/screens/about/sponsor_screen.dart';
@@ -18,10 +18,30 @@ class AboutScreen extends StatefulWidget {
 class _AboutScreenState extends State<AboutScreen> {
   int _tapCount = 0;
   DateTime? _lastTapTime;
+  String _versionLabel = 'Version -';
+  AppReleaseInfo? _releaseInfo;
+  bool _checkingUpdate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionInfo();
+  }
+
+  Future<void> _loadVersionInfo() async {
+    final versionInfo = await AppUpdateService.instance.getCurrentVersionInfo();
+    final releaseInfo = await AppUpdateService.instance.getLatestRelease();
+    if (!mounted) return;
+    setState(() {
+      _versionLabel = versionInfo.displayLabel;
+      _releaseInfo = releaseInfo;
+    });
+  }
 
   void _onIconTap() {
     final now = DateTime.now();
-    if (_lastTapTime != null && now.difference(_lastTapTime!).inMilliseconds > 500) {
+    if (_lastTapTime != null &&
+        now.difference(_lastTapTime!).inMilliseconds > 500) {
       _tapCount = 0;
     }
     _lastTapTime = now;
@@ -34,6 +54,53 @@ class _AboutScreenState extends State<AboutScreen> {
         MaterialPageRoute(builder: (context) => const EggScreen()),
       );
     }
+  }
+
+  Future<void> _checkForUpdate() async {
+    setState(() {
+      _checkingUpdate = true;
+    });
+
+    final release = await AppUpdateService.instance.getLatestRelease(refresh: true);
+    if (!mounted) return;
+
+    setState(() {
+      _checkingUpdate = false;
+      _releaseInfo = release;
+    });
+
+    if (release == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('检查更新失败，请稍后重试')),
+      );
+      return;
+    }
+
+    if (!release.updateAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('当前已是最新版本')),
+      );
+      return;
+    }
+
+    final opened = await AppUpdateService.instance.openLatestUpdateUrl(refresh: false);
+    if (!mounted) return;
+    if (!opened) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('无法打开更新地址')),
+      );
+    }
+  }
+
+  String _buildUpdateText() {
+    final release = _releaseInfo;
+    if (release == null || release.latestVersion == null) {
+      return '检查更新';
+    }
+    if (!release.updateAvailable) {
+      return '已是最新版本';
+    }
+    return '发现新版本 ${release.latestVersion}';
   }
 
   @override
@@ -66,28 +133,37 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Version 1.1.0-build.5',
+                  _versionLabel,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: () => launchUrl(
-                    Uri.parse('https://syntrion.dev/mysues#download'),
-                    mode: LaunchMode.externalApplication,
-                  ),
+                  onTap: _checkingUpdate ? null : _checkForUpdate,
                   child: Text(
-                    '检查更新',
+                    _checkingUpdate ? '检查中...' : _buildUpdateText(),
                     style: TextStyle(
                       color: Colors.grey[500],
                       fontSize: 13,
                     ),
                   ),
                 ),
+                if (_releaseInfo?.updateAvailable == true &&
+                    _releaseInfo?.changelog != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      _releaseInfo!.changelog!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
           const SizedBox(height: 40),
-
           Card(
             clipBehavior: Clip.antiAlias,
             elevation: 0,
@@ -103,7 +179,8 @@ class _AboutScreenState extends State<AboutScreen> {
                 const Divider(height: 1, indent: 16),
                 ListTile(
                   title: const Text('使用教程'),
-                  trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+                  trailing:
+                      const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                   onTap: () => MainEntryScreen.showOnboarding(context),
                 ),
                 const Divider(height: 1, indent: 16),
@@ -115,7 +192,6 @@ class _AboutScreenState extends State<AboutScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 48),
           const Center(
             child: Text(

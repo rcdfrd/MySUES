@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/services/notification_service.dart';
+import 'package:mysues/services/app_update_service.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:mysues/services/widget_service.dart';
 import 'screens/splash_screen.dart';
@@ -44,6 +45,9 @@ void main() async {
   // Reschedule notifications after app is running to avoid blocking startup
   notificationService.rescheduleAll().catchError((e) {
     debugPrint('Failed to reschedule notifications: $e');
+  });
+  AppUpdateService.instance.syncOnAppStart().catchError((e) {
+    debugPrint('Failed to sync app update info: $e');
   });
 }
 

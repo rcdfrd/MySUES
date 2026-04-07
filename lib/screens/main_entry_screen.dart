@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mysues/services/app_update_service.dart';
 import 'package:mysues/services/theme_service.dart';
 import 'package:mysues/utils/screen_breakpoints.dart';
 import 'package:mysues/widgets/liquid_glass_bottom_bar.dart';
@@ -216,6 +217,7 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
       context,
     ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
     await prefs.setBool('onboarding_completed', true);
+    AppUpdateService.instance.syncOnAppStart(force: true);
   }
 
   Widget _buildLeftNavigationRail(BuildContext context, bool useLiquidGlass) {
