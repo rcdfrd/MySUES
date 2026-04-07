@@ -17,7 +17,7 @@ class AppVersionInfo {
   final String version;
   final int buildNumber;
 
-  String get displayLabel => 'Version $version-build.$buildNumber';
+  String get displayLabel => 'Version $version (build.$buildNumber)';
 }
 
 class AppReleaseInfo {
@@ -88,7 +88,10 @@ class AppUpdateService {
   AppReleaseInfo? _cachedRelease;
   AppVersionInfo? _cachedVersionInfo;
 
+  bool get supportsUpdateCheck => Platform.isAndroid;
+
   Future<void> syncOnAppStart({bool force = false}) async {
+    if (!supportsUpdateCheck) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       final agreementAccepted = prefs.getBool('agreement_accepted') ?? false;
@@ -130,6 +133,7 @@ class AppUpdateService {
   }
 
   Future<AppReleaseInfo?> getLatestRelease({bool refresh = false}) async {
+    if (!supportsUpdateCheck) return null;
     if (!refresh && _cachedRelease != null) return _cachedRelease;
 
     if (!_didLoadCachedRelease) {
@@ -168,6 +172,7 @@ class AppUpdateService {
   }
 
   Future<bool> openLatestUpdateUrl({bool refresh = true}) async {
+    if (!supportsUpdateCheck) return false;
     final release = await getLatestRelease(refresh: refresh);
     final url = release?.updateUrl;
     if (url == null || url.isEmpty) return false;

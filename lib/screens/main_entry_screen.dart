@@ -217,7 +217,10 @@ class _MainEntryScreenState extends State<MainEntryScreen> {
       context,
     ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
     await prefs.setBool('onboarding_completed', true);
-    AppUpdateService.instance.syncOnAppStart(force: true);
+    final appUpdateService = AppUpdateService.instance;
+    if (appUpdateService.supportsUpdateCheck) {
+      appUpdateService.syncOnAppStart(force: true);
+    }
   }
 
   Widget _buildLeftNavigationRail(BuildContext context, bool useLiquidGlass) {

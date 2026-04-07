@@ -29,8 +29,11 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _loadVersionInfo() async {
-    final versionInfo = await AppUpdateService.instance.getCurrentVersionInfo();
-    final releaseInfo = await AppUpdateService.instance.getLatestRelease();
+    final updateService = AppUpdateService.instance;
+    final versionInfo = await updateService.getCurrentVersionInfo();
+    final releaseInfo = updateService.supportsUpdateCheck
+        ? await updateService.getLatestRelease()
+        : null;
     if (!mounted) return;
     setState(() {
       _versionLabel = versionInfo.displayLabel;
@@ -57,11 +60,13 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _checkForUpdate() async {
+    final updateService = AppUpdateService.instance;
+    if (!updateService.supportsUpdateCheck) return;
     setState(() {
       _checkingUpdate = true;
     });
 
-    final release = await AppUpdateService.instance.getLatestRelease(refresh: true);
+    final release = await updateService.getLatestRelease(refresh: true);
     if (!mounted) return;
 
     setState(() {
@@ -105,6 +110,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final supportsUpdateCheck = AppUpdateService.instance.supportsUpdateCheck;
     return Scaffold(
       appBar: AppBar(
         title: const Text('关于'),
@@ -136,30 +142,32 @@ class _AboutScreenState extends State<AboutScreen> {
                   _versionLabel,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _checkingUpdate ? null : _checkForUpdate,
-                  child: Text(
-                    _checkingUpdate ? '检查中...' : _buildUpdateText(),
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                if (_releaseInfo?.updateAvailable == true &&
-                    _releaseInfo?.changelog != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                if (supportsUpdateCheck) ...[
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _checkingUpdate ? null : _checkForUpdate,
                     child: Text(
-                      _releaseInfo!.changelog!,
-                      textAlign: TextAlign.center,
+                      _checkingUpdate ? '检查中...' : _buildUpdateText(),
                       style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
+                        color: Colors.grey[500],
+                        fontSize: 13,
                       ),
                     ),
                   ),
+                  if (_releaseInfo?.updateAvailable == true &&
+                      _releaseInfo?.changelog != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        _releaseInfo!.changelog!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ),
           ),

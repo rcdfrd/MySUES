@@ -46,9 +46,12 @@ void main() async {
   notificationService.rescheduleAll().catchError((e) {
     debugPrint('Failed to reschedule notifications: $e');
   });
-  AppUpdateService.instance.syncOnAppStart().catchError((e) {
-    debugPrint('Failed to sync app update info: $e');
-  });
+  final appUpdateService = AppUpdateService.instance;
+  if (appUpdateService.supportsUpdateCheck) {
+    appUpdateService.syncOnAppStart().catchError((e) {
+      debugPrint('Failed to sync app update info: $e');
+    });
+  }
 }
 
 class MyApp extends StatelessWidget {
